@@ -2,10 +2,10 @@ FROM python:3.11-bullseye
 
 WORKDIR /app
 
-COPY requirements.txt .
+COPY requirements.txt /app/
 RUN pip install -r requirements.txt
 
-COPY . .
+COPY . /app/
 
 EXPOSE 5000
 
