@@ -1,1 +1,52 @@
-# Start here!
+version: '3.8'
+
+services:
+  # Flask Server
+  server:
+    build: .
+    container_name: wheel-server
+    env_file: .env
+    environment:
+      - DOMAIN=${DOMAIN}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_S3_BUCKET_NAME=${AWS_S3_BUCKET_NAME}
+      - AWS_S3_CLOUDFRONT=${AWS_S3_CLOUDFRONT}
+    depends_on:
+      - mysql
+    networks:
+      - wheel-network
+
+  # MySQL DB
+  mysql:
+    image: mysql:8.0
+    container_name: wheel-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - wheel-network
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: wheel-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./static:/usr/share/nginx/html
+    depends_on:
+      - server
+    networks:
+      - wheel-network
+
+volumes:
+  mysql_data:
+
+networks:
+  wheel-network:
+    driver: bridge
